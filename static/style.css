@@ -1,0 +1,192 @@
+:root {
+    --bg: #EAF0EE;
+    --paper: #FFFFFF;
+    --ink: #13323A;
+    --muted: #5A716D;
+    --line: #D3DEDA;
+    --accent: #1C6E63;
+    --accent-ink: #FFFFFF;
+    --soft: #DCEAE5;
+    --error: #A63D2A;
+    --font: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0E1C1F;
+      --paper: #152A2E;
+      --ink: #E3EEEB;
+      --muted: #93AAA5;
+      --line: #24403F;
+      --accent: #4FB3A2;
+      --accent-ink: #06211D;
+      --soft: #1B3A37;
+      --error: #F08A72;
+    }
+  }
+  
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: var(--font);
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--ink);
+    background: var(--bg);
+    display: flex;
+    justify-content: center;
+  }
+  
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  
+  .app {
+    width: 100%;
+    max-width: 760px;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background: var(--paper);
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+  }
+  
+  /* Header */
+  header {
+    padding: 18px 24px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
+  .pulse { width: 64px; height: 24px; flex-shrink: 0; }
+  .pulse polyline,
+  .thinking polyline {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .note {
+    margin: 6px 0 0;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  
+  /* Messages */
+  main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  
+  .empty { margin: auto 0; padding-bottom: 40px; }
+  .empty h2 { font-size: 28px; line-height: 1.2; margin: 0 0 8px; }
+  .empty p { margin: 0 0 20px; color: var(--muted); max-width: 52ch; }
+  .suggestions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .suggestions button {
+    font: inherit;
+    font-size: 15px;
+    color: var(--ink);
+    background: var(--soft);
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: 8px 14px;
+    cursor: pointer;
+  }
+  .suggestions button:hover { border-color: var(--accent); }
+  
+  .msg { max-width: 85%; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .msg.user {
+    align-self: flex-end;
+    background: var(--accent);
+    color: var(--accent-ink);
+    padding: 10px 16px;
+    border-radius: 18px 18px 4px 18px;
+  }
+  .msg.bot {
+    align-self: flex-start;
+    padding-left: 14px;
+    border-left: 3px solid var(--accent);
+  }
+  .msg.bot .who {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 2px;
+  }
+  .msg.error {
+    align-self: flex-start;
+    color: var(--error);
+    font-size: 15px;
+  }
+  
+  .thinking { align-self: flex-start; padding-left: 17px; }
+  .thinking svg { width: 90px; height: 28px; display: block; }
+  .thinking polyline {
+    stroke-dasharray: 160;
+    stroke-dashoffset: 160;
+    animation: trace 1.4s linear infinite;
+  }
+  @keyframes trace {
+    to { stroke-dashoffset: -160; }
+  }
+  
+  /* Composer */
+  form {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    padding: 14px 24px 18px;
+    border-top: 1px solid var(--line);
+  }
+  textarea {
+    flex: 1;
+    font: inherit;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 11px 14px;
+    resize: none;
+    max-height: 160px;
+    overflow-y: auto;
+  }
+  textarea:focus { outline: none; border-color: var(--accent); }
+  .send {
+    font: inherit;
+    font-weight: 700;
+    color: var(--accent-ink);
+    background: var(--accent);
+    border: none;
+    border-radius: 14px;
+    padding: 11px 20px;
+    cursor: pointer;
+  }
+  .send:disabled { opacity: 0.5; cursor: not-allowed; }
+  
+  button:focus-visible,
+  textarea:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+  }
+  
+  @media (max-width: 600px) {
+    .app { border: none; }
+    header, main, form { padding-left: 16px; padding-right: 16px; }
+    .empty h2 { font-size: 24px; }
+    .msg { max-width: 92%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .thinking polyline { animation: none; stroke-dashoffset: 0; }
+  }

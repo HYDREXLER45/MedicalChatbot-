@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MediBot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <svg class="pulse" viewBox="0 0 64 24" aria-hidden="true">
+          <polyline points="0,12 18,12 23,4 29,20 34,8 38,12 64,12"/>
+        </svg>
+        <h1>MediBot</h1>
+      </div>
+      <p class="note">General information from your medical reference. Not a diagnosis; see a doctor about your own symptoms.</p>
+    </header>
+
+    <main id="messages" aria-live="polite">
+      <div class="empty" id="empty">
+        <h2>Ask a medical question</h2>
+        <p>Answers are drawn from the encyclopedia in the knowledge base and kept to a few sentences.</p>
+        <div class="suggestions">
+          <button type="button">What is acromegaly?</button>
+          <button type="button">What are the symptoms of asthma?</button>
+          <button type="button">How is anemia treated?</button>
+        </div>
+      </div>
+    </main>
+
+    <form id="composer">
+      <label for="msg" class="visually-hidden">Your question</label>
+      <textarea id="msg" name="msg" rows="1" placeholder="Type your question" autocomplete="off"></textarea>
+      <button class="send" id="send" type="submit">Send</button>
+    </form>
+  </div>
+
+  <script>
+    const messages = document.getElementById("messages");
+    const form = document.getElementById("composer");
+    const input = document.getElementById("msg");
+    const sendBtn = document.getElementById("send");
+    let busy = false;
+
+    function scrollToBottom() {
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function removeEmptyState() {
+      const empty = document.getElementById("empty");
+      if (empty) empty.remove();
+    }
+
+    function addMessage(kind, text) {
+      removeEmptyState();
+      const el = document.createElement("div");
+      el.className = "msg " + kind;
+      if (kind === "bot") {
+        const who = document.createElement("span");
+        who.className = "who";
+        who.textContent = "MediBot";
+        el.appendChild(who);
+      }
+      el.appendChild(document.createTextNode(text));
+      messages.appendChild(el);
+      scrollToBottom();
+      return el;
+    }
+
+    function addThinking() {
+      const el = document.createElement("div");
+      el.className = "thinking";
+      el.setAttribute("role", "status");
+      el.setAttribute("aria-label", "MediBot is answering");
+      el.innerHTML = '<svg viewBox="0 0 90 28" aria-hidden="true"><polyline points="0,14 26,14 32,4 40,24 47,9 52,14 90,14"/></svg>';
+      messages.appendChild(el);
+      scrollToBottom();
+      return el;
+    }
+
+    function resizeInput() {
+      input.style.height = "auto";
+      const border = input.offsetHeight - input.clientHeight;
+      input.style.height = (input.scrollHeight + border) + "px";
+    }
+
+    async function send(text) {
+      text = text.trim();
+      if (!text || busy) return;
+
+      busy = true;
+      sendBtn.disabled = true;
+      addMessage("user", text);
+      input.value = "";
+      resizeInput();
+      const pending = addThinking();
+
+      try {
+        const res = await fetch("/get", {
+          method: "POST",
+          body: new URLSearchParams({ msg: text })
+        });
+        if (!res.ok) throw new Error("Status " + res.status);
+        const reply = await res.text();
+        pending.remove();
+        addMessage("bot", reply.trim() || "No answer was returned for that question. Try rephrasing it.");
+      } catch (err) {
+        console.error(err);
+        pending.remove();
+        addMessage("error", "No answer came back from the server. Check that app.py is running in Terminal, then send your question again.");
+      } finally {
+        busy = false;
+        sendBtn.disabled = false;
+        input.focus();
+      }
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      send(input.value);
+    });
+
+    // Enter sends, Shift + Enter adds a new line
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
+        e.preventDefault();
+        send(input.value);
+      }
+    });
+
+    input.addEventListener("input", resizeInput);
+
+    document.querySelectorAll(".suggestions button").forEach((btn) => {
+      btn.addEventListener("click", () => send(btn.textContent));
+    });
+
+    input.focus();
+  </script>
+</body>
+</html>
